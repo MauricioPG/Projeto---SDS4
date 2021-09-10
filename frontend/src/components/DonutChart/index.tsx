@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts'
 import { SaleSum } from 'types/sales';
 import { BASE_URL } from 'utils/requests';
@@ -11,25 +12,37 @@ type ChartData = {
 
 const DonutChart = () => {
 
-    // FORMA ERRADA
+    // FORMA ERRADA - para que a pagina se atualize com os dados obtidos, tem que usar o hook: useState
     // let -> muda; post -> nao muda
-    let chartData: ChartData = { labels: [], series: [] };
-
-    // FORMA ERRADA
-    axios.get(`${BASE_URL}/sales/amount-by-seller`)
-        .then(response => {
-            const data = response.data as SaleSum[];
-            const myLabels = data.map(x => x.sellerName);
-            const mySeries = data.map(x => x.sum);
-
-            chartData = { labels: myLabels, series: mySeries };
-
-            // o que sai na tela...
-            console.log(response.data);
-            console.log(chartData);
-        })
+    // let chartData: ChartData = { labels: [], series: [] };
 
 
+    const [chartData, setChartData] = useState<ChartData>({ labels: [], series: [] });
+
+    useEffect(() => {
+        axios.get(`${BASE_URL}/sales/amount-by-seller`)
+            .then(response => {
+                const data = response.data as SaleSum[];
+                const myLabels = data.map(x => x.sellerName);
+                const mySeries = data.map(x => x.sum);
+
+                setChartData({ labels: myLabels, series: mySeries });
+            });
+    }, []);
+
+    // FORMA ERRADA - o axios, apos atualizar o componente, vai passar tudo de novo. Como vai atualizar de novo,
+    // entra em loop infinito e estoura a memoria, uma hora...
+    // Tem que controlar para executar apenas uma vez... usa o hook: useEffect
+
+    //axios.get(`${BASE_URL}/sales/amount-by-seller`)
+    //    .then(response => {
+    //        const data = response.data as SaleSum[];
+    //        const myLabels = data.map(x => x.sellerName);
+    //        const mySeries = data.map(x => x.sum);
+    //        setChartData({ labels: myLabels, series: mySeries });
+    //        o que sai na tela console...
+    //        console.log(chartData);
+    //    })
 
 
     //const mockData = {
